@@ -13,7 +13,7 @@ export default {
     this.$bus.$on('auth:login', () => {
       if (window.user && window.user.signedIn) {
         // eslint-disable-next-line
-        new Sheet('Online Sign Up Sheets');
+        new Sheet('___Online Sign Up Sheets Information___');
       }
     });
   },
