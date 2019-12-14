@@ -1,18 +1,21 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <v-btn to="login">Login</v-btn>
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue';
+import Sheet from '../utils/Sheet';
 
 export default {
   name: 'home',
-  components: {
-    HelloWorld,
+  created() {
+    this.$bus.$on('auth:login', () => {
+      if (window.user && window.user.signedIn) {
+        // eslint-disable-next-line
+        new Sheet('Online Sign Up Sheets');
+      }
+    });
   },
 };
 </script>
