@@ -6,7 +6,7 @@ export default class Sheet {
   }
 
   async load() {
-    this.sheetId = await this.loadSheet();
+    this.driveSheet = await this.loadSheet();
     await this.get();
     await this.setUp();
     await this.write();
@@ -16,30 +16,31 @@ export default class Sheet {
 
   async loadSheet() {
     if (localStorage.getItem(this.name)) {
-      return localStorage.getItem(this.name);
+      return { id: localStorage.getItem(this.name) };
     }
-    let sheetId = await this.getExistingSheet();
-    if (!sheetId) {
+    let sheet = await this.getExistingSheet();
+    if (!sheet) {
       const response = await window.gapi.client.sheets.spreadsheets.create({
         properties: {
           title: this.name,
         },
       });
-      sheetId = response.result.spreadsheetId;
+      sheet = {};
+      sheet.id = response.result.spreadsheetId;
     }
 
-    localStorage.setItem(`Sheet-${this.name}`, sheetId);
-    return sheetId;
+    localStorage.setItem(`Sheet-${this.name}`, sheet.id);
+    return sheet;
   }
 
   async getExistingSheet() {
     const res = (await window.gapi.client.drive.files.list({
       q: `name = '${this.name}' and trashed = false`,
-      fields: 'files(id, name)',
+      fields: 'files(id, name, capabilities)',
       spaces: 'drive',
     })).result;
     console.log('RES', res.files);
-    return (res.files && res.files[0]) ? res.files[0].id : undefined;
+    return (res.files && res.files[0]) ? res.files[0] : undefined;
   }
 
   async get() {
@@ -49,7 +50,7 @@ export default class Sheet {
   async getSheet() {
     if (!this.sheetId) throw new Error('Tried to get sheet before loaded');
     const response = await window.gapi.client.sheets.spreadsheets.get({
-      spreadsheetId: this.sheetId,
+      spreadsheetId: this.sheet.id,
     });
 
     return response.result;
@@ -62,6 +63,7 @@ export default class Sheet {
     if (!this.sheet.sheets.map(s => s.properties.title).includes('___Overview___')) {
       this.createOverviewSheet();
     }
+    if (!this.driveSheet.capabilities)
   }
 
   createAccountSheet() {
